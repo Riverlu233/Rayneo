@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.ffalcon.mercury.android.sdk.jlLU"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-sdk
+        android:minSdkVersion="31"
+        android:targetSdkVersion="31" />
+
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application
+        android:name="com.ffalcon.mercury.android.sdk.demo.MercuryDemoApplication"
+        android:allowBackup="true"
+        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:debuggable="true"
+        android:extractNativeLibs="false"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:testOnly="true"
+        android:theme="@style/Theme.MercuryAndroidSDK" >
+        <meta-data
+            android:name="com.rayneo.mercury.app"
+            android:value="true" />
+
+        <activity
+            android:name="com.ffalcon.mercury.android.sdk.demo.DemoHomeActivity"
+            android:exported="true"
+            android:screenOrientation="landscape" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.DialogActivity"
+            android:screenOrientation="landscape" />
+        <activity
+            android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.recycle.FixedFocusPosRVActivity"
+            android:screenOrientation="landscape" />
+        <activity
+            android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.recycle.MovedFocusPosRVActivity"
+            android:screenOrientation="landscape" />
+        <activity
+            android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.FragmentDemoActivity"
+            android:screenOrientation="landscape" />
+        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.fusion.FusionVisionHomeActivity" />
+        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.fusion.FusionVisionActivity" />
+        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.fusion.MirrorContainerViewActivity" />
+        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.recycle.RecycleViewHomeActivity" />
+        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.api.APIActivity" />
+        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.camera.CameraActivity" />
+        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.tp.TPEventActivity" />
+        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.player.VideoPlayActivity" />
+        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.fusion.PAGActivity" />
+        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.api.APIHomeActivity" />
+        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.api.IMUActivity" />
+        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.camera.CameraHomeActivity" />
+        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.recycle.DynamicFocusTargetActivity" />
+
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="com.ffalcon.mercury.android.sdk.jlLU.androidx-startup"
+            android:exported="false" >
+            <meta-data
+                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+                android:value="androidx.startup" />
+            <meta-data
+                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+                android:value="androidx.startup" />
+        </provider>
+    </application>
+
+</manifest>

@@ -1,0 +1,161 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.ffalcon.mercury.android.sdk.jlLU"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="31"
+8-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml
+9        android:targetSdkVersion="31" />
+9-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml
+10
+11    <uses-permission android:name="android.permission.CAMERA" />
+11-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:6:5-65
+11-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:6:22-62
+12    <uses-permission android:name="android.permission.INTERNET" />
+12-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:7:5-67
+12-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:7:22-64
+13    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+13-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:8:5-79
+13-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:8:22-76
+14
+15    <application
+15-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:10:5-78:19
+16        android:name="com.ffalcon.mercury.android.sdk.demo.MercuryDemoApplication"
+16-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:11:9-47
+17        android:allowBackup="true"
+17-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:12:9-35
+18        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+18-->[androidx.core:core:1.8.0] C:\Users\jiebro\.gradle\caches\transforms-3\a9b9ee94eedd8d89024ef7df063f0204\transformed\core-1.8.0\AndroidManifest.xml:24:18-86
+19        android:dataExtractionRules="@xml/data_extraction_rules"
+19-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:13:9-65
+20        android:debuggable="true"
+21        android:extractNativeLibs="false"
+22        android:fullBackupContent="@xml/backup_rules"
+22-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:14:9-54
+23        android:icon="@mipmap/ic_launcher"
+23-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:15:9-43
+24        android:label="@string/app_name"
+24-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:16:9-41
+25        android:roundIcon="@mipmap/ic_launcher_round"
+25-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:17:9-54
+26        android:supportsRtl="true"
+26-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:18:9-35
+27        android:testOnly="true"
+28        android:theme="@style/Theme.MercuryAndroidSDK" >
+28-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:19:9-55
+29        <meta-data
+29-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:22:9-24:36
+30            android:name="com.rayneo.mercury.app"
+30-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:23:13-50
+31            android:value="true" />
+31-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:24:13-33
+32
+33        <activity
+33-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:26:9-35:20
+34            android:name="com.ffalcon.mercury.android.sdk.demo.DemoHomeActivity"
+34-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:27:13-45
+35            android:exported="true"
+35-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:28:13-36
+36            android:screenOrientation="landscape" >
+36-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:29:13-50
+37            <intent-filter>
+37-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:30:13-34:29
+38                <action android:name="android.intent.action.MAIN" />
+38-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:31:17-69
+38-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:31:25-66
+39
+40                <category android:name="android.intent.category.LAUNCHER" />
+40-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:33:17-77
+40-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:33:27-74
+41            </intent-filter>
+42        </activity>
+43        <activity
+43-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:37:9-39:53
+44            android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.DialogActivity"
+44-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:38:13-55
+45            android:screenOrientation="landscape" />
+45-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:39:13-50
+46        <activity
+46-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:40:9-42:53
+47            android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.recycle.FixedFocusPosRVActivity"
+47-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:41:13-72
+48            android:screenOrientation="landscape" />
+48-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:42:13-50
+49        <activity
+49-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:44:9-46:53
+50            android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.recycle.MovedFocusPosRVActivity"
+50-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:45:13-72
+51            android:screenOrientation="landscape" />
+51-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:46:13-50
+52        <activity
+52-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:48:9-50:53
+53            android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.FragmentDemoActivity"
+53-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:49:13-61
+54            android:screenOrientation="landscape" />
+54-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:50:13-50
+55        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.fusion.FusionVisionHomeActivity" />
+55-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:52:9-81
+55-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:52:19-78
+56        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.fusion.FusionVisionActivity" />
+56-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:54:9-77
+56-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:54:19-74
+57        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.fusion.MirrorContainerViewActivity" />
+57-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:56:9-84
+57-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:56:19-81
+58        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.recycle.RecycleViewHomeActivity" />
+58-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:58:9-81
+58-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:58:19-78
+59        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.api.APIActivity" />
+59-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:60:9-65
+59-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:60:19-62
+60        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.camera.CameraActivity" />
+60-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:62:9-71
+60-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:62:19-68
+61        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.tp.TPEventActivity" />
+61-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:64:9-68
+61-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:64:19-65
+62        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.player.VideoPlayActivity" />
+62-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:66:9-74
+62-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:66:19-71
+63        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.fusion.PAGActivity" />
+63-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:68:9-68
+63-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:68:19-65
+64        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.api.APIHomeActivity" />
+64-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:70:9-69
+64-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:70:19-66
+65        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.api.IMUActivity" />
+65-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:72:9-65
+65-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:72:19-62
+66        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.camera.CameraHomeActivity" />
+66-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:74:9-75
+66-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:74:19-72
+67        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.recycle.DynamicFocusTargetActivity" />
+67-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:76:9-83
+67-->D:\SummerIntern\Code\AIGlasses_SDK\x3\app\src\main\AndroidManifest.xml:76:19-81
+68
+69        <provider
+69-->[androidx.emoji2:emoji2:1.2.0] C:\Users\jiebro\.gradle\caches\transforms-3\dbf8cee8a2686805eec357350d5b1605\transformed\emoji2-1.2.0\AndroidManifest.xml:24:9-32:20
+70            android:name="androidx.startup.InitializationProvider"
+70-->[androidx.emoji2:emoji2:1.2.0] C:\Users\jiebro\.gradle\caches\transforms-3\dbf8cee8a2686805eec357350d5b1605\transformed\emoji2-1.2.0\AndroidManifest.xml:25:13-67
+71            android:authorities="com.ffalcon.mercury.android.sdk.jlLU.androidx-startup"
+71-->[androidx.emoji2:emoji2:1.2.0] C:\Users\jiebro\.gradle\caches\transforms-3\dbf8cee8a2686805eec357350d5b1605\transformed\emoji2-1.2.0\AndroidManifest.xml:26:13-68
+72            android:exported="false" >
+72-->[androidx.emoji2:emoji2:1.2.0] C:\Users\jiebro\.gradle\caches\transforms-3\dbf8cee8a2686805eec357350d5b1605\transformed\emoji2-1.2.0\AndroidManifest.xml:27:13-37
+73            <meta-data
+73-->[androidx.emoji2:emoji2:1.2.0] C:\Users\jiebro\.gradle\caches\transforms-3\dbf8cee8a2686805eec357350d5b1605\transformed\emoji2-1.2.0\AndroidManifest.xml:29:13-31:52
+74                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+74-->[androidx.emoji2:emoji2:1.2.0] C:\Users\jiebro\.gradle\caches\transforms-3\dbf8cee8a2686805eec357350d5b1605\transformed\emoji2-1.2.0\AndroidManifest.xml:30:17-75
+75                android:value="androidx.startup" />
+75-->[androidx.emoji2:emoji2:1.2.0] C:\Users\jiebro\.gradle\caches\transforms-3\dbf8cee8a2686805eec357350d5b1605\transformed\emoji2-1.2.0\AndroidManifest.xml:31:17-49
+76            <meta-data
+76-->[androidx.lifecycle:lifecycle-process:2.4.1] C:\Users\jiebro\.gradle\caches\transforms-3\f2a22985807e1f187a5a6aa8656c7887\transformed\lifecycle-process-2.4.1\AndroidManifest.xml:31:13-33:52
+77                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+77-->[androidx.lifecycle:lifecycle-process:2.4.1] C:\Users\jiebro\.gradle\caches\transforms-3\f2a22985807e1f187a5a6aa8656c7887\transformed\lifecycle-process-2.4.1\AndroidManifest.xml:32:17-78
+78                android:value="androidx.startup" />
+78-->[androidx.lifecycle:lifecycle-process:2.4.1] C:\Users\jiebro\.gradle\caches\transforms-3\f2a22985807e1f187a5a6aa8656c7887\transformed\lifecycle-process-2.4.1\AndroidManifest.xml:33:17-49
+79        </provider>
+80    </application>
+81
+82</manifest>
