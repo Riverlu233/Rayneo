@@ -43,7 +43,10 @@ class CameraHomeActivity : BaseMirrorActivity<ActivityCameraHomeBinding>() {
                                     Intent(
                                         this@CameraHomeActivity,
                                         CameraActivity::class.java
-                                    )
+                                    ).apply {
+                                        putExtra("isVGA", false)
+                                        putExtra("useTcp", mBindingPair.left.switchTcp.isChecked)
+                                    }
                                 )
                             }
 
@@ -71,6 +74,7 @@ class CameraHomeActivity : BaseMirrorActivity<ActivityCameraHomeBinding>() {
                                         CameraActivity::class.java
                                     ).apply {
                                         putExtra("isVGA", true)
+                                        putExtra("useTcp", mBindingPair.left.switchTcp.isChecked)
                                     }
                                 )
                             }
@@ -81,6 +85,27 @@ class CameraHomeActivity : BaseMirrorActivity<ActivityCameraHomeBinding>() {
                     focusChangeHandler = { hasFocus ->
                         mBindingPair.updateView {
                             triggerFocus(hasFocus, btnVga, mBindingPair.checkIsLeft(this))
+                        }
+                    }
+                ),
+                FocusInfo(
+                    switchTcp,
+                    eventHandler = { action ->
+                        when (action) {
+                            is TempleAction.Click -> {
+                                switchTcp.isChecked = !switchTcp.isChecked
+                            }
+
+                            else -> Unit
+                        }
+                    },
+                    focusChangeHandler = { hasFocus ->
+                        mBindingPair.updateView {
+                            triggerFocus(
+                                hasFocus,
+                                switchTcp,
+                                mBindingPair.checkIsLeft(this)
+                            )
                         }
                     }
                 ),

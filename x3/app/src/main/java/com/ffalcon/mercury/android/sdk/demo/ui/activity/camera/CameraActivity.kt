@@ -38,22 +38,30 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
+import java.io.BufferedOutputStream
+import java.io.DataOutputStream
 import java.nio.ByteBuffer
+import java.net.Socket
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
-import kotlin.concurrent.thread
 
 class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
+    private companion object {
+        const val COMPUTER_IP = "192.168.43.248"
+        const val TRANSFER_PORT = 9999
+    }
+
     private var isVGA = false
+    private var useTcp = false
     private val surfaceList = mutableListOf<Surface>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // isVGA = intent.getBooleanExtra("isVGA", false)
-        isVGA = true
+        isVGA = intent.getBooleanExtra("isVGA", false)
+        useTcp = intent.getBooleanExtra("useTcp", false)
         backHandlerThread.start()
 
         lifecycleScope.launch {
@@ -152,6 +160,13 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
             backHandler = Handler(this.looper)
         }
     }
+
+    private val transportExecutor = Executors.newSingleThreadExecutor()
+    private val tcpLock = Any()
+    private val udpSocket = DatagramSocket()
+    private var tcpSocket: Socket? = null
+    private var tcpOutputStream: DataOutputStream? = null
+
     private val stateCallback = object : CameraDevice.StateCallback() {
         @RequiresApi(Build.VERSION_CODES.P)
         override fun onOpened(p0: CameraDevice) {
@@ -282,6 +297,9 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
         } catch (e: Exception) {
         } finally {
             atomicBoolean.set(false)
+            transportExecutor.shutdownNow()
+            udpSocket.close()
+            closeTcpConnection()
         }
     }
 
@@ -574,12 +592,8 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
         }
     }
 
-    private val udpSocket = DatagramSocket()
-
+    /** Encodes one camera frame as JPEG and dispatches it through the selected transport. */
     private fun sendImageToComputer(image: Image) {
-        val computerIp = "192.168.43.248"
-        val port = 9999
-
         val width = image.width
         val height = image.height
 
@@ -594,16 +608,74 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
         val jpegBytes = out.toByteArray()
         out.close()
 
-        // 3. 子线程通过 UDP 发送
-        thread {
-            try {
-                val address = InetAddress.getByName(computerIp)
-                val packet = DatagramPacket(jpegBytes, jpegBytes.size, address, port)
-                udpSocket.send(packet)
-            } catch (e: Exception) {
-                e.printStackTrace()
+        transportExecutor.execute {
+            if (useTcp) {
+                sendTcpFrame(jpegBytes)
+            } else {
+                sendUdpFrame(jpegBytes)
             }
         }
+    }
+
+    /** Sends one JPEG frame as a UDP datagram. */
+    private fun sendUdpFrame(jpegBytes: ByteArray) {
+        try {
+            val address = InetAddress.getByName(COMPUTER_IP)
+            val packet = DatagramPacket(
+                jpegBytes,
+                jpegBytes.size,
+                address,
+                TRANSFER_PORT,
+            )
+            udpSocket.send(packet)
+        } catch (exception: Exception) {
+            Log.e("CameraActivity", "UDP frame send failed", exception)
+        }
+    }
+
+    /** Sends one JPEG frame over TCP with a four-byte big-endian length prefix. */
+    private fun sendTcpFrame(jpegBytes: ByteArray) {
+        synchronized(tcpLock) {
+            try {
+                if (tcpSocket == null || tcpSocket!!.isClosed) {
+                    val socket = Socket(COMPUTER_IP, TRANSFER_PORT)
+                    socket.tcpNoDelay = true
+                    tcpSocket = socket
+                    tcpOutputStream = DataOutputStream(
+                        BufferedOutputStream(socket.getOutputStream())
+                    )
+                }
+
+                val outputStream = tcpOutputStream ?: return
+                outputStream.writeInt(jpegBytes.size)
+                outputStream.write(jpegBytes)
+                outputStream.flush()
+            } catch (exception: Exception) {
+                Log.e("CameraActivity", "TCP frame send failed", exception)
+                closeTcpConnectionLocked()
+            }
+        }
+    }
+
+    /** Closes the TCP connection and clears its sender state. */
+    private fun closeTcpConnection() {
+        synchronized(tcpLock) {
+            closeTcpConnectionLocked()
+        }
+    }
+
+    /** Closes the TCP connection while the TCP lock is held. */
+    private fun closeTcpConnectionLocked() {
+        try {
+            tcpOutputStream?.close()
+        } catch (_: Exception) {
+        }
+        try {
+            tcpSocket?.close()
+        } catch (_: Exception) {
+        }
+        tcpOutputStream = null
+        tcpSocket = null
     }
 
     /**
