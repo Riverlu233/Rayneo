@@ -2934,6 +2934,7 @@ id fragment_container_view_tag
 id fullscreen_header
 id ghost_view
 id ghost_view_holder
+id gomoku_overlay
 id gone
 id graph
 id graph_wrap

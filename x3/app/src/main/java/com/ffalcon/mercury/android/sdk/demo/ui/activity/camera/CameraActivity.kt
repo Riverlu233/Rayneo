@@ -31,6 +31,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.ffalcon.mercury.android.sdk.demo.databinding.ActivityCameraBinding
+import com.ffalcon.mercury.android.sdk.demo.net.GomokuCommandClient
 import com.ffalcon.mercury.android.sdk.touch.TempleAction
 import com.ffalcon.mercury.android.sdk.ui.activity.BaseMirrorActivity
 import com.ffalcon.mercury.android.sdk.util.FLogger
@@ -57,6 +58,8 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
     private var isVGA = true
     private var useTcp = false
     private val surfaceList = mutableListOf<Surface>()
+
+    private var commandClient: GomokuCommandClient? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -134,14 +137,43 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
                 }
 
             }
+            // 把棋盘叠加层放到最上层，并隐藏预览画面（仍保留 Surface 供采集）
+            this.gomokuOverlay.bringToFront()
+            this.gomokuOverlay.elevation = 10f
+            this.cameraPreview.alpha = 0f
         }
 
         //enumerateCameraResolutions()
         printCameraCapabilities()
+
+        commandClient = GomokuCommandClient(
+            ip = COMPUTER_IP, // 直接复用你顶部定义的电脑 IP
+            port = 9988,      // PC 端发送 JSON 的端口
+            onGameState = { state ->
+                // 解析 AI 推荐坐标
+                val move = if (state.ai_move.row >= 0 && state.ai_move.col >= 0)
+                    state.ai_move.row to state.ai_move.col
+                else null
+
+                // 切换到主线程刷新 UI
+                runOnUiThread {
+                    mBindingPair.updateView {
+                        // 这里的 gomokuOverlay 对应你在 XML 里加的 id="@+id/gomoku_overlay"
+                        this.gomokuOverlay.update(state.board_matrix, move)
+                    }
+                }
+            },
+            onDisconnected = {
+                Log.e("Gomoku", "与 PC 的指令端口断开连接")
+            }
+        )
+        // 绑定生命周期启动
+        commandClient?.start(lifecycleScope)
     }
 
     override fun onStop() {
         super.onStop()
+        commandClient?.close()
         Thread {
             closeCamera()
         }.start()

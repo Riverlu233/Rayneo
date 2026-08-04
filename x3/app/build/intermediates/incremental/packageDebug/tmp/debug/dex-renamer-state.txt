@@ -1,6 +1,7 @@
-#Tue Aug 04 11:03:50 CST 2026
+#Tue Aug 04 20:41:54 CST 2026
 base.0=D\:\\SummerIntern\\Code\\AIGlasses_SDK\\Rayneo\\x3\\app\\build\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes.dex
 base.1=D\:\\SummerIntern\\Code\\AIGlasses_SDK\\Rayneo\\x3\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\0\\classes.dex
+base.10=D\:\\SummerIntern\\Code\\AIGlasses_SDK\\Rayneo\\x3\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\8\\classes.dex
 base.2=D\:\\SummerIntern\\Code\\AIGlasses_SDK\\Rayneo\\x3\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\11\\classes.dex
 base.3=D\:\\SummerIntern\\Code\\AIGlasses_SDK\\Rayneo\\x3\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\12\\classes.dex
 base.4=D\:\\SummerIntern\\Code\\AIGlasses_SDK\\Rayneo\\x3\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\14\\classes.dex
@@ -11,6 +12,7 @@ base.8=D\:\\SummerIntern\\Code\\AIGlasses_SDK\\Rayneo\\x3\\app\\build\\intermedi
 base.9=D\:\\SummerIntern\\Code\\AIGlasses_SDK\\Rayneo\\x3\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\9\\classes.dex
 path.0=classes.dex
 path.1=0/classes.dex
+path.10=8/classes.dex
 path.2=11/classes.dex
 path.3=12/classes.dex
 path.4=14/classes.dex
@@ -21,6 +23,7 @@ path.8=4/classes.dex
 path.9=9/classes.dex
 renamed.0=classes.dex
 renamed.1=classes2.dex
+renamed.10=classes11.dex
 renamed.2=classes3.dex
 renamed.3=classes4.dex
 renamed.4=classes5.dex
