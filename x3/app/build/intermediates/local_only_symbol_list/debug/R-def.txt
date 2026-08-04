@@ -53,6 +53,7 @@ id mirror_container
 id pag_view
 id phoneTitleView
 id recycler_view
+id switch_tcp
 id textureView
 id thumbnail_view
 id tvAccelerometer

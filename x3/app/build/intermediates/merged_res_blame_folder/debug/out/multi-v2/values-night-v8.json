@@ -4,7 +4,7 @@
             "outputFile": "com.ffalcon.mercury.android.sdk.demo.app-mergeDebugResources-35:/values-night-v8/values-night-v8.xml",
             "map": [
                 {
-                    "source": "D:\\SummerIntern\\Code\\AIGlasses_SDK\\x3\\app\\src\\main\\res\\values-night\\themes.xml",
+                    "source": "D:\\SummerIntern\\Code\\AIGlasses_SDK\\Rayneo\\x3\\app\\src\\main\\res\\values-night\\themes.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",

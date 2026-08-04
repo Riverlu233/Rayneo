@@ -54,7 +54,7 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
         const val TRANSFER_PORT = 9999
     }
 
-    private var isVGA = false
+    private var isVGA = true
     private var useTcp = false
     private val surfaceList = mutableListOf<Surface>()
 
@@ -142,7 +142,9 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
 
     override fun onStop() {
         super.onStop()
-        closeCamera()
+        Thread {
+            closeCamera()
+        }.start()
     }
 
     private var cameraDevice: CameraDevice? = null
@@ -277,29 +279,44 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
     }
 
     private fun closeCamera() {
-        try {
-            if (null != cameraCaptureSession) {
+        // 1. 第一时间告诉 ImageReader 的回调：不要再处理新图了！
+        atomicBoolean.set(false)
 
+        try {
+            // 2. 极其重要：打断底层的图像输出循环，防止 close() 时死锁
+            if (null != cameraCaptureSession) {
+                try {
+                    cameraCaptureSession!!.stopRepeating()
+                    cameraCaptureSession!!.abortCaptures()
+                } catch (e: Exception) {
+                    Log.e("Camera", "停止捕获异常", e)
+                }
                 cameraCaptureSession!!.close()
                 cameraCaptureSession = null
             }
-            if (null != cameraDevice) {
 
+            // 3. 安全关闭相机设备
+            if (null != cameraDevice) {
                 cameraDevice!!.close()
                 cameraDevice = null
             }
-            // If you use ImageReader, you should also close it here
+
+            // 4. 关闭图像读取器
             if (null != imageReader) {
                 imageReader?.close()
                 imageReader = null
             }
-            atomicBoolean.set(false)
         } catch (e: Exception) {
+            Log.e("Camera", "关闭相机异常", e)
         } finally {
-            atomicBoolean.set(false)
-            transportExecutor.shutdownNow()
-            udpSocket.close()
-            closeTcpConnection()
+            // 5. 最后清理网络和线程池 (建议这些操作如果耗时，最好也是在子线程中)
+            try {
+                transportExecutor.shutdownNow()
+                udpSocket?.close() // 注意判空
+                closeTcpConnection()
+            } catch (e: Exception) {
+                Log.e("Camera", "关闭网络异常", e)
+            }
         }
     }
 

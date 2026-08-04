@@ -143,6 +143,7 @@ def display_frames():
         nparr = np.frombuffer(data, np.uint8)
         image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
         if image is not None:
+            image = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
             cv2.imshow(window_title, image)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
