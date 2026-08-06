@@ -15,7 +15,7 @@
 
 ### 2. 相机与推流逻辑调整
 * **APP 端相机固定**：重点调整了分辨率的选择逻辑，目前固定选取 RGB 彩色相机，不再使用 VGA 相机。
-* **网络协议升级**：特别鸣谢贡献者 **JohnnyZhu035 (Johnny Zhu)**，推流方案已由 UDP 更改为更稳定的 **TCP** 传输。
+* **网络协议升级**：特别鸣谢贡献者 [JohnnyZhu035](https://github.com/JohnnyZhu035) 为本项目的 TCP 传输架构做出的贡献。推流方案已由 UDP 更改为更稳定的 TCP 传输。
 * **当前状态**：目前识别准确率尚可（基于线上五子棋环境，即对于屏幕上五子棋进行的测试），但系统整体延迟仍然较高，需要在后续版本中进一步优化。
 
 ---
@@ -49,6 +49,7 @@
 ## 🔗 资源与依赖
 * **官方 SDK 下载与文档**：[RayNeo ARDK 下载链接](https://rayneo.gitbook.io/rayneo-devdoc/x-xi-lie/android-kai-fa/ardk-xia-zai)
 * **模型项目引用**：[zhuoyiyao97/YOLO-GO](https://github.com/zhuoyiyao97/YOLO-GO)
+* **贡献者**：特别鸣谢 [JohnnyZhu035](https://github.com/JohnnyZhu035) 为本项目的 TCP 传输架构做出的贡献。
 * 开发环境参考：Android Studio & Python 3.x
 
 ---
