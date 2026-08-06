@@ -13,6 +13,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.ffalcon.mercury.android.sdk.demo.R;
+import com.ffalcon.mercury.android.sdk.demo.ui.view.GomokuOverlayView;
 import java.lang.NullPointerException;
 import java.lang.Override;
 import java.lang.String;
@@ -28,14 +29,18 @@ public final class ActivityCameraBinding implements ViewBinding {
   public final TextView captureImageButton;
 
   @NonNull
+  public final GomokuOverlayView gomokuOverlay;
+
+  @NonNull
   public final ImageView thumbnailView;
 
   private ActivityCameraBinding(@NonNull ConstraintLayout rootView,
       @NonNull TextureView cameraPreview, @NonNull TextView captureImageButton,
-      @NonNull ImageView thumbnailView) {
+      @NonNull GomokuOverlayView gomokuOverlay, @NonNull ImageView thumbnailView) {
     this.rootView = rootView;
     this.cameraPreview = cameraPreview;
     this.captureImageButton = captureImageButton;
+    this.gomokuOverlay = gomokuOverlay;
     this.thumbnailView = thumbnailView;
   }
 
@@ -78,6 +83,12 @@ public final class ActivityCameraBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.gomoku_overlay;
+      GomokuOverlayView gomokuOverlay = ViewBindings.findChildViewById(rootView, id);
+      if (gomokuOverlay == null) {
+        break missingId;
+      }
+
       id = R.id.thumbnail_view;
       ImageView thumbnailView = ViewBindings.findChildViewById(rootView, id);
       if (thumbnailView == null) {
@@ -85,7 +96,7 @@ public final class ActivityCameraBinding implements ViewBinding {
       }
 
       return new ActivityCameraBinding((ConstraintLayout) rootView, cameraPreview,
-          captureImageButton, thumbnailView);
+          captureImageButton, gomokuOverlay, thumbnailView);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

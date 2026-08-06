@@ -25,4 +25,13 @@
         android:textAllCaps="false"
         tools:ignore="HardcodedText" />
 
+    <Switch
+        android:id="@+id/switch_tcp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:text="TCP 传输（默认 UDP）"
+        android:textAllCaps="false"
+        tools:ignore="HardcodedText" />
+
 </LinearLayout>

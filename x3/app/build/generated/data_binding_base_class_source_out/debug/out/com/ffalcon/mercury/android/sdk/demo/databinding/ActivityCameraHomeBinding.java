@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.Switch;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.viewbinding.ViewBinding;
@@ -25,11 +26,15 @@ public final class ActivityCameraHomeBinding implements ViewBinding {
   @NonNull
   public final Button btnVga;
 
+  @NonNull
+  public final Switch switchTcp;
+
   private ActivityCameraHomeBinding(@NonNull LinearLayout rootView, @NonNull Button btnCamera,
-      @NonNull Button btnVga) {
+      @NonNull Button btnVga, @NonNull Switch switchTcp) {
     this.rootView = rootView;
     this.btnCamera = btnCamera;
     this.btnVga = btnVga;
+    this.switchTcp = switchTcp;
   }
 
   @Override
@@ -71,7 +76,13 @@ public final class ActivityCameraHomeBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ActivityCameraHomeBinding((LinearLayout) rootView, btnCamera, btnVga);
+      id = R.id.switch_tcp;
+      Switch switchTcp = ViewBindings.findChildViewById(rootView, id);
+      if (switchTcp == null) {
+        break missingId;
+      }
+
+      return new ActivityCameraHomeBinding((LinearLayout) rootView, btnCamera, btnVga, switchTcp);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

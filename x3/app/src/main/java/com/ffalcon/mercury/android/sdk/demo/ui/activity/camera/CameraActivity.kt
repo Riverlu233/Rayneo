@@ -31,6 +31,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.ffalcon.mercury.android.sdk.demo.databinding.ActivityCameraBinding
+import com.ffalcon.mercury.android.sdk.demo.net.GomokuCommandClient
 import com.ffalcon.mercury.android.sdk.touch.TempleAction
 import com.ffalcon.mercury.android.sdk.ui.activity.BaseMirrorActivity
 import com.ffalcon.mercury.android.sdk.util.FLogger
@@ -38,22 +39,34 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
+import java.io.BufferedOutputStream
+import java.io.DataOutputStream
 import java.nio.ByteBuffer
+import java.net.Socket
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
-import kotlin.concurrent.thread
 
 class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
+    private companion object {
+        const val COMPUTER_IP = "192.168.43.248"
+        const val TRANSFER_PORT = 9999
+        const val SEND_INTERVAL_MS = 500L
+    }
+
     private var isVGA = false
+    private var useTcp = false
+    private var lastSendTime = 0L
     private val surfaceList = mutableListOf<Surface>()
+
+    private var commandClient: GomokuCommandClient? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // isVGA = intent.getBooleanExtra("isVGA", false)
-        isVGA = true
+        isVGA = intent.getBooleanExtra("isVGA", false)
+        useTcp = intent.getBooleanExtra("useTcp", false)
         backHandlerThread.start()
 
         lifecycleScope.launch {
@@ -94,7 +107,7 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
                     } else {
                         surface.setDefaultBufferSize(
                             1920,
-                            1080
+                            1440
                         )
                     }
 
@@ -126,15 +139,46 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
                 }
 
             }
+            // 把棋盘叠加层放到最上层，并隐藏预览画面（仍保留 Surface 供采集）
+            this.gomokuOverlay.bringToFront()
+            this.gomokuOverlay.elevation = 10f
+            this.cameraPreview.alpha = 0f
         }
 
-        //enumerateCameraResolutions()
+        enumerateCameraResolutions()
         printCameraCapabilities()
+
+        commandClient = GomokuCommandClient(
+            ip = COMPUTER_IP, // 直接复用你顶部定义的电脑 IP
+            port = 9988,      // PC 端发送 JSON 的端口
+            onGameState = { state ->
+                // 解析 AI 推荐坐标
+                val move = if (state.ai_move.row >= 0 && state.ai_move.col >= 0)
+                    state.ai_move.row to state.ai_move.col
+                else null
+
+                // 切换到主线程刷新 UI
+                runOnUiThread {
+                    mBindingPair.updateView {
+                        // 这里的 gomokuOverlay 对应你在 XML 里加的 id="@+id/gomoku_overlay"
+                        this.gomokuOverlay.update(state.board_matrix, move)
+                    }
+                }
+            },
+            onDisconnected = {
+                Log.e("Gomoku", "与 PC 的指令端口断开连接")
+            }
+        )
+        // 绑定生命周期启动
+        commandClient?.start(lifecycleScope)
     }
 
     override fun onStop() {
         super.onStop()
-        closeCamera()
+        commandClient?.close()
+        Thread {
+            closeCamera()
+        }.start()
     }
 
     private var cameraDevice: CameraDevice? = null
@@ -152,6 +196,13 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
             backHandler = Handler(this.looper)
         }
     }
+
+    private val transportExecutor = Executors.newSingleThreadExecutor()
+    private val tcpLock = Any()
+    private val udpSocket = DatagramSocket()
+    private var tcpSocket: Socket? = null
+    private var tcpOutputStream: DataOutputStream? = null
+
     private val stateCallback = object : CameraDevice.StateCallback() {
         @RequiresApi(Build.VERSION_CODES.P)
         override fun onOpened(p0: CameraDevice) {
@@ -178,9 +229,9 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
     @SuppressLint("MissingPermission")
     private fun setupCamera2() {
         cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
-        val cameraId =
-             if (isVGA) cameraManager.cameraIdList[1] else cameraManager.cameraIdList.first()
-        // val cameraId = cameraManager.cameraIdList.first()
+        // val cameraId =
+             // if (isVGA) cameraManager.cameraIdList[1] else cameraManager.cameraIdList.first()
+        val cameraId = cameraManager.cameraIdList.first()
         cameraManager.openCamera(cameraId, stateCallback, null)
 
     }
@@ -193,25 +244,35 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
         imageReader = if (isVGA)
             ImageReader.newInstance(640, 480, ImageFormat.YUV_420_888, 10)
         else
-            ImageReader.newInstance(1920, 1080, ImageFormat.YUV_420_888, 10)
-
+            ImageReader.newInstance(1920, 1440, ImageFormat.YUV_420_888, 10) // 保持 4:3 高画幅
 
         cameraDevice = camera
         openTime = -1L
+
         imageReader?.setOnImageAvailableListener({ reader ->
-
-
-            if (openTime == -1L) {
-                openTime = System.currentTimeMillis()
-                return@setOnImageAvailableListener
-            }
-            if ((System.currentTimeMillis() - openTime) < 1000L) {
-                return@setOnImageAvailableListener
-            }
             val image = reader.acquireLatestImage() ?: run {
                 return@setOnImageAvailableListener
             }
 
+            if (openTime == -1L) {
+                openTime = System.currentTimeMillis()
+                image.close() // 💡 初始帧跳过时必须关闭
+                return@setOnImageAvailableListener
+            }
+            if ((System.currentTimeMillis() - openTime) < 1000L) {
+                image.close() // 💡 启动缓冲期跳过时必须关闭
+                return@setOnImageAvailableListener
+            }
+
+            // 💡 核心降频限流逻辑：没到时间间隔就直接跳过并关闭图像
+            val currentTime = System.currentTimeMillis()
+            if (currentTime - lastSendTime < 400L) { // 400ms 发送一帧
+                image.close() // 🚨 极为重要：不关会导致相机缓冲区溢出卡死
+                return@setOnImageAvailableListener
+            }
+            lastSendTime = currentTime
+
+            // 满足时间间隔，正常发送高清帧到电脑
             sendImageToComputer(image)
 
             if (takePhoto.get()) {
@@ -225,6 +286,8 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
                     }
                 } ?: Log.e("CameraActivity", "Image convert to bitmap failed! ")
             }
+
+            // 正常处理完后关闭当前帧
             image.close()
 
         }, backHandler)
@@ -237,18 +300,18 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
                 }
                 val fpsRange = Range(5, 10)
                 set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, fpsRange)
-
             }
+
         val outputConfig = OutputConfiguration(imageReader!!.surface)
         val outputConfig2 = OutputConfiguration(surfaceList[0])
         val outputConfig3 = OutputConfiguration(surfaceList[1])
         val outputs = listOf(outputConfig, outputConfig2, outputConfig3)
+
         val sessionConfig = SessionConfiguration(
             SessionConfiguration.SESSION_REGULAR,
             outputs,
             Executors.newSingleThreadExecutor(),
             object : CameraCaptureSession.StateCallback() {
-
                 override fun onConfigured(session: CameraCaptureSession) {
                     session.setRepeatingRequest(captureRequestBuilder.build(), null, null)
                     cameraCaptureSession = session
@@ -260,28 +323,45 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
         )
         camera.createCaptureSession(sessionConfig)
     }
-
     private fun closeCamera() {
-        try {
-            if (null != cameraCaptureSession) {
+        // 1. 第一时间告诉 ImageReader 的回调：不要再处理新图了！
+        atomicBoolean.set(false)
 
+        try {
+            // 2. 极其重要：打断底层的图像输出循环，防止 close() 时死锁
+            if (null != cameraCaptureSession) {
+                try {
+                    cameraCaptureSession!!.stopRepeating()
+                    cameraCaptureSession!!.abortCaptures()
+                } catch (e: Exception) {
+                    Log.e("Camera", "停止捕获异常", e)
+                }
                 cameraCaptureSession!!.close()
                 cameraCaptureSession = null
             }
-            if (null != cameraDevice) {
 
+            // 3. 安全关闭相机设备
+            if (null != cameraDevice) {
                 cameraDevice!!.close()
                 cameraDevice = null
             }
-            // If you use ImageReader, you should also close it here
+
+            // 4. 关闭图像读取器
             if (null != imageReader) {
                 imageReader?.close()
                 imageReader = null
             }
-            atomicBoolean.set(false)
         } catch (e: Exception) {
+            Log.e("Camera", "关闭相机异常", e)
         } finally {
-            atomicBoolean.set(false)
+            // 5. 最后清理网络和线程池 (建议这些操作如果耗时，最好也是在子线程中)
+            try {
+                transportExecutor.shutdownNow()
+                udpSocket?.close() // 注意判空
+                closeTcpConnection()
+            } catch (e: Exception) {
+                Log.e("Camera", "关闭网络异常", e)
+            }
         }
     }
 
@@ -574,12 +654,8 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
         }
     }
 
-    private val udpSocket = DatagramSocket()
-
+    /** Encodes one camera frame as JPEG and dispatches it through the selected transport. */
     private fun sendImageToComputer(image: Image) {
-        val computerIp = "192.168.43.248"
-        val port = 9999
-
         val width = image.width
         val height = image.height
 
@@ -590,20 +666,78 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
         val yuvImage = YuvImage(nv21, ImageFormat.NV21, width, height, null)
         val out = ByteArrayOutputStream()
         // 压缩质量设为 50，降低网络传输压力
-        yuvImage.compressToJpeg(Rect(0, 0, width, height), 50, out)
+        yuvImage.compressToJpeg(Rect(0, 0, width, height), 90, out)
         val jpegBytes = out.toByteArray()
         out.close()
 
-        // 3. 子线程通过 UDP 发送
-        thread {
-            try {
-                val address = InetAddress.getByName(computerIp)
-                val packet = DatagramPacket(jpegBytes, jpegBytes.size, address, port)
-                udpSocket.send(packet)
-            } catch (e: Exception) {
-                e.printStackTrace()
+        transportExecutor.execute {
+            if (useTcp) {
+                sendTcpFrame(jpegBytes)
+            } else {
+                sendUdpFrame(jpegBytes)
             }
         }
+    }
+
+    /** Sends one JPEG frame as a UDP datagram. */
+    private fun sendUdpFrame(jpegBytes: ByteArray) {
+        try {
+            val address = InetAddress.getByName(COMPUTER_IP)
+            val packet = DatagramPacket(
+                jpegBytes,
+                jpegBytes.size,
+                address,
+                TRANSFER_PORT,
+            )
+            udpSocket.send(packet)
+        } catch (exception: Exception) {
+            Log.e("CameraActivity", "UDP frame send failed", exception)
+        }
+    }
+
+    /** Sends one JPEG frame over TCP with a four-byte big-endian length prefix. */
+    private fun sendTcpFrame(jpegBytes: ByteArray) {
+        synchronized(tcpLock) {
+            try {
+                if (tcpSocket == null || tcpSocket!!.isClosed) {
+                    val socket = Socket(COMPUTER_IP, TRANSFER_PORT)
+                    socket.tcpNoDelay = true
+                    tcpSocket = socket
+                    tcpOutputStream = DataOutputStream(
+                        BufferedOutputStream(socket.getOutputStream())
+                    )
+                }
+
+                val outputStream = tcpOutputStream ?: return
+                outputStream.writeInt(jpegBytes.size)
+                outputStream.write(jpegBytes)
+                outputStream.flush()
+            } catch (exception: Exception) {
+                Log.e("CameraActivity", "TCP frame send failed", exception)
+                closeTcpConnectionLocked()
+            }
+        }
+    }
+
+    /** Closes the TCP connection and clears its sender state. */
+    private fun closeTcpConnection() {
+        synchronized(tcpLock) {
+            closeTcpConnectionLocked()
+        }
+    }
+
+    /** Closes the TCP connection while the TCP lock is held. */
+    private fun closeTcpConnectionLocked() {
+        try {
+            tcpOutputStream?.close()
+        } catch (_: Exception) {
+        }
+        try {
+            tcpSocket?.close()
+        } catch (_: Exception) {
+        }
+        tcpOutputStream = null
+        tcpSocket = null
     }
 
     /**

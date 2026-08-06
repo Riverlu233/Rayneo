@@ -43,6 +43,7 @@ id capture_image_button
 id container
 id flContainer
 id fl_root
+id gomoku_overlay
 id ivPhoto
 id iv_select_hover
 id layout_content
@@ -53,6 +54,7 @@ id mirror_container
 id pag_view
 id phoneTitleView
 id recycler_view
+id switch_tcp
 id textureView
 id thumbnail_view
 id tvAccelerometer
