@@ -3,7 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.ffalcon.mercury.android.sdk.demo">
 
+    <!-- 保留必要的硬件与网络权限 -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="true" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
@@ -17,63 +19,22 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MercuryAndroidSDK"
-        tools:targetApi="31">
+        >
 
         <meta-data
             android:name="com.rayneo.mercury.app"
             android:value="true" />
 
+        <!-- 将应用启动入口直接设为你的核心主流程 CameraActivity -->
         <activity
-            android:name=".DemoHomeActivity"
+            android:name=".ui.activity.camera.CameraActivity"
             android:exported="true"
             android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity
-            android:name=".ui.activity.DialogActivity"
-            android:screenOrientation="landscape" />
-        <activity
-            android:name=".ui.activity.recycle.FixedFocusPosRVActivity"
-            android:screenOrientation="landscape" />
-
-        <activity
-            android:name=".ui.activity.recycle.MovedFocusPosRVActivity"
-            android:screenOrientation="landscape" />
-
-        <activity
-            android:name=".ui.activity.FragmentDemoActivity"
-            android:screenOrientation="landscape" />
-
-        <activity android:name=".ui.activity.fusion.FusionVisionHomeActivity" />
-
-        <activity android:name=".ui.activity.fusion.FusionVisionActivity" />
-
-        <activity android:name=".ui.activity.fusion.MirrorContainerViewActivity" />
-
-        <activity android:name=".ui.activity.recycle.RecycleViewHomeActivity" />
-
-        <activity android:name=".ui.activity.api.APIActivity" />
-
-        <activity android:name=".ui.activity.camera.CameraActivity" />
-
-        <activity android:name=".ui.activity.tp.TPEventActivity" />
-
-        <activity android:name=".ui.activity.player.VideoPlayActivity" />
-
-        <activity android:name=".ui.activity.fusion.PAGActivity" />
-
-        <activity android:name=".ui.activity.api.APIHomeActivity" />
-
-        <activity android:name=".ui.activity.api.IMUActivity" />
-
-        <activity android:name=".ui.activity.camera.CameraHomeActivity" />
-
-        <activity android:name=".ui.activity.recycle.DynamicFocusTargetActivity"/>
 
     </application>
 

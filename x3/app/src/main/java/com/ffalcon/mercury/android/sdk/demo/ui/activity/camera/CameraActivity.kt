@@ -23,7 +23,6 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
 import android.util.Range
-import android.util.Size
 import android.view.Surface
 import android.view.TextureView.SurfaceTextureListener
 import androidx.annotation.RequiresApi
@@ -34,7 +33,6 @@ import com.ffalcon.mercury.android.sdk.demo.databinding.ActivityCameraBinding
 import com.ffalcon.mercury.android.sdk.demo.net.GomokuCommandClient
 import com.ffalcon.mercury.android.sdk.touch.TempleAction
 import com.ffalcon.mercury.android.sdk.ui.activity.BaseMirrorActivity
-import com.ffalcon.mercury.android.sdk.util.FLogger
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -45,9 +43,6 @@ import java.nio.ByteBuffer
 import java.net.Socket
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
-import java.net.DatagramPacket
-import java.net.DatagramSocket
-import java.net.InetAddress
 
 class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
     private companion object {
@@ -57,7 +52,6 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
     }
 
     private var isVGA = false
-    private var useTcp = false
     private var lastSendTime = 0L
     private val surfaceList = mutableListOf<Surface>()
 
@@ -66,7 +60,6 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         isVGA = intent.getBooleanExtra("isVGA", false)
-        useTcp = intent.getBooleanExtra("useTcp", false)
         backHandlerThread.start()
 
         lifecycleScope.launch {
@@ -106,8 +99,8 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
                         )
                     } else {
                         surface.setDefaultBufferSize(
-                            1920,
-                            1440
+                            1440,
+                            1080
                         )
                     }
 
@@ -199,7 +192,6 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
 
     private val transportExecutor = Executors.newSingleThreadExecutor()
     private val tcpLock = Any()
-    private val udpSocket = DatagramSocket()
     private var tcpSocket: Socket? = null
     private var tcpOutputStream: DataOutputStream? = null
 
@@ -229,8 +221,6 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
     @SuppressLint("MissingPermission")
     private fun setupCamera2() {
         cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
-        // val cameraId =
-             // if (isVGA) cameraManager.cameraIdList[1] else cameraManager.cameraIdList.first()
         val cameraId = cameraManager.cameraIdList.first()
         cameraManager.openCamera(cameraId, stateCallback, null)
 
@@ -323,6 +313,7 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
         )
         camera.createCaptureSession(sessionConfig)
     }
+
     private fun closeCamera() {
         // 1. 第一时间告诉 ImageReader 的回调：不要再处理新图了！
         atomicBoolean.set(false)
@@ -357,7 +348,6 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
             // 5. 最后清理网络和线程池 (建议这些操作如果耗时，最好也是在子线程中)
             try {
                 transportExecutor.shutdownNow()
-                udpSocket?.close() // 注意判空
                 closeTcpConnection()
             } catch (e: Exception) {
                 Log.e("Camera", "关闭网络异常", e)
@@ -415,9 +405,6 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
         }
     }
 
-    /**
-     * Print camera supported parameters and parameter ranges
-     */
     @SuppressLint("LongLogTag")
     private fun printCameraCapabilities() {
         val cameraManager = getSystemService(CAMERA_SERVICE) as CameraManager
@@ -432,28 +419,13 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
                 Log.d("CameraCapabilities", "\n📷 Camera ID: $cameraId")
                 Log.d("CameraCapabilities", "----------------------------------------")
 
-                // 1. Basic camera information
                 printBasicInfo(characteristics, cameraId)
-
-                // 2. Resolution information
                 printResolutionInfo(characteristics)
-
-                // 3. Exposure related parameters
                 printExposureCapabilities(characteristics)
-
-                // 4. Focus related parameters
                 printFocusCapabilities(characteristics)
-
-                // 5. White balance related parameters
                 printWhiteBalanceCapabilities(characteristics)
-
-                // 6. Other image quality parameters
                 printImageQualityCapabilities(characteristics)
-
-                // 7. Flash information
                 printFlashCapabilities(characteristics)
-
-                // 8. Frame rate information
                 printFrameRateCapabilities(characteristics)
 
             } catch (e: Exception) {
@@ -462,9 +434,6 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
         }
     }
 
-    /**
-     * Print basic camera information
-     */
     private fun printBasicInfo(characteristics: CameraCharacteristics, cameraId: String) {
         val lensFacing = characteristics.get(CameraCharacteristics.LENS_FACING)
         val lensFacingStr = when (lensFacing) {
@@ -490,20 +459,16 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
         Log.d("CameraCapabilities", "⚙️ Hardware support level: $levelStr")
     }
 
-    /**
-     * Print resolution information
-     */
     private fun printResolutionInfo(characteristics: CameraCharacteristics) {
         val map =
             characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP) ?: return
 
         Log.d("CameraCapabilities", "\n📐 Resolution support:")
 
-        // Preview resolution
         val previewSizes = map.getOutputSizes(SurfaceTexture::class.java)
         Log.d("CameraCapabilities", "  Preview resolution (${previewSizes.size} types):")
         previewSizes.sortedByDescending { it.width * it.height }
-            .take(10) // Only show first 10
+            .take(10)
             .forEach { size ->
                 Log.d(
                     "CameraCapabilities",
@@ -516,7 +481,6 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
                 )
             }
 
-        // Photo resolution
         val photoSizes = map.getOutputSizes(ImageFormat.JPEG)
         Log.d("CameraCapabilities", "  Photo resolution (${photoSizes.size} types):")
         photoSizes.sortedByDescending { it.width * it.height }
@@ -534,17 +498,12 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
             }
     }
 
-    /**
-     * Print exposure related capabilities
-     */
     private fun printExposureCapabilities(characteristics: CameraCharacteristics) {
         Log.d("CameraCapabilities", "\n☀️ Exposure parameters:")
 
-        // ISO range
         val isoRange = characteristics.get(CameraCharacteristics.SENSOR_INFO_SENSITIVITY_RANGE)
         Log.d("CameraCapabilities", "  ISO range: ${isoRange?.lower} - ${isoRange?.upper}")
 
-        // Exposure time range (nanoseconds)
         val exposureTimeRange =
             characteristics.get(CameraCharacteristics.SENSOR_INFO_EXPOSURE_TIME_RANGE)
         exposureTimeRange?.let {
@@ -553,7 +512,6 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
             Log.d("CameraCapabilities", "  Exposure time: $minMs ms - $maxMs ms")
         }
 
-        // Exposure compensation range
         val exposureCompensationRange =
             characteristics.get(CameraCharacteristics.CONTROL_AE_COMPENSATION_RANGE)
         val exposureCompensationStep =
@@ -563,27 +521,20 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
             "  Exposure compensation: ${exposureCompensationRange?.lower} - ${exposureCompensationRange?.upper} (step: $exposureCompensationStep)"
         )
 
-        // Supported AE modes
         val aeModes = characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_MODES)
         Log.d("CameraCapabilities", "  AE modes: ${aeModes?.contentToString()}")
     }
 
-    /**
-     * Print focus related capabilities
-     */
     private fun printFocusCapabilities(characteristics: CameraCharacteristics) {
         Log.d("CameraCapabilities", "\n🎯 Focus parameters:")
 
-        // Supported focus modes
         val afModes = characteristics.get(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES)
         Log.d("CameraCapabilities", "  Focus modes: ${afModes?.contentToString()}")
 
-        // Minimum focus distance
         val minFocusDistance =
             characteristics.get(CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE)
         Log.d("CameraCapabilities", "  Minimum focus distance: $minFocusDistance")
 
-        // Focus distance range
         val focusDistanceRange =
             characteristics.get(CameraCharacteristics.LENS_INFO_FOCUS_DISTANCE_CALIBRATION)
         val calibrationStr = when (focusDistanceRange) {
@@ -595,32 +546,22 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
         Log.d("CameraCapabilities", "  Focus distance calibration: $calibrationStr")
     }
 
-    /**
-     * Print white balance related capabilities
-     */
     private fun printWhiteBalanceCapabilities(characteristics: CameraCharacteristics) {
         Log.d("CameraCapabilities", "\n🎨 White balance parameters:")
 
-        // Supported AWB modes
         val awbModes = characteristics.get(CameraCharacteristics.CONTROL_AWB_AVAILABLE_MODES)
         Log.d("CameraCapabilities", "  White balance modes: ${awbModes?.contentToString()}")
     }
 
-    /**
-     * Print image quality parameters
-     */
     private fun printImageQualityCapabilities(characteristics: CameraCharacteristics) {
         Log.d("CameraCapabilities", "\n🖼️ Image quality parameters:")
 
-        // Supported scene modes
         val sceneModes = characteristics.get(CameraCharacteristics.CONTROL_AVAILABLE_SCENE_MODES)
         Log.d("CameraCapabilities", "  Scene modes: ${sceneModes?.contentToString()}")
 
-        // Supported effect modes
         val effectModes = characteristics.get(CameraCharacteristics.CONTROL_AVAILABLE_EFFECTS)
         Log.d("CameraCapabilities", "  Effect modes: ${effectModes?.contentToString()}")
 
-        // Whether RAW is supported
         val rawSizes = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
             ?.getOutputSizes(ImageFormat.RAW_SENSOR)
         Log.d(
@@ -629,9 +570,6 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
         )
     }
 
-    /**
-     * Print flash information
-     */
     private fun printFlashCapabilities(characteristics: CameraCharacteristics) {
         Log.d("CameraCapabilities", "\n💡 Flash information:")
 
@@ -640,9 +578,6 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
         Log.d("CameraCapabilities", "  Flash available: $flashAvailable")
     }
 
-    /**
-     * Print frame rate information
-     */
     private fun printFrameRateCapabilities(characteristics: CameraCharacteristics) {
         Log.d("CameraCapabilities", "\n Frame rate information:")
 
@@ -656,42 +591,41 @@ class CameraActivity : BaseMirrorActivity<ActivityCameraBinding>() {
 
     /** Encodes one camera frame as JPEG and dispatches it through the selected transport. */
     private fun sendImageToComputer(image: Image) {
+        val t0 = System.currentTimeMillis() // 探针 0：拿到原始帧
+
         val width = image.width
         val height = image.height
 
         // 1. 安全地将 YUV_420_888 转换为 NV21 字节数组
         val nv21 = yuv420888ToNv21(image)
+        val t1 = System.currentTimeMillis()
 
         // 2. 将 NV21 压缩为 JPEG
         val yuvImage = YuvImage(nv21, ImageFormat.NV21, width, height, null)
         val out = ByteArrayOutputStream()
-        // 压缩质量设为 50，降低网络传输压力
+        // 压缩质量设为 50-90，根据网络传输压力调整
         yuvImage.compressToJpeg(Rect(0, 0, width, height), 90, out)
         val jpegBytes = out.toByteArray()
         out.close()
+        val t2 = System.currentTimeMillis()
 
+        // 只使用 TCP 发送
         transportExecutor.execute {
-            if (useTcp) {
-                sendTcpFrame(jpegBytes)
-            } else {
-                sendUdpFrame(jpegBytes)
-            }
-        }
-    }
+            val t3 = System.currentTimeMillis()
+            sendTcpFrame(jpegBytes)
+            val t4 = System.currentTimeMillis()
 
-    /** Sends one JPEG frame as a UDP datagram. */
-    private fun sendUdpFrame(jpegBytes: ByteArray) {
-        try {
-            val address = InetAddress.getByName(COMPUTER_IP)
-            val packet = DatagramPacket(
-                jpegBytes,
-                jpegBytes.size,
-                address,
-                TRANSFER_PORT,
-            )
-            udpSocket.send(packet)
-        } catch (exception: Exception) {
-            Log.e("CameraActivity", "UDP frame send failed", exception)
+            val formatCost = t1 - t0
+            val encodeCost = t2 - t1
+            val threadWaitCost = t3 - t2
+            val netWriteCost = t4 - t3
+            val totalAndroidCost = t4 - t0
+
+            Log.i("LatencyProfile", "【端侧总耗时: ${totalAndroidCost}ms】 " +
+                    "格式转换: ${formatCost}ms, " +
+                    "JPEG压缩: ${encodeCost}ms, " +
+                    "线程等待: ${threadWaitCost}ms, " +
+                    "TCP写入: ${netWriteCost}ms | 帧大小: ${jpegBytes.size / 1024}KB")
         }
     }
 

@@ -4,6 +4,7 @@ import threading
 import cv2
 import numpy as np
 from queue import Empty, Full, Queue
+import time
 
 class StreamReceiver:
     def __init__(self, ip="0.0.0.0", port=9999, max_frame_size=8 * 1024 * 1024):
@@ -11,7 +12,8 @@ class StreamReceiver:
         self.port = port
         self.max_frame_size = max_frame_size
         
-        self.frame_queue = Queue(maxsize=2)
+        # 💡 核心改动 1：把队列最大长度设为 1，追求极致的“只要最新”
+        self.frame_queue = Queue(maxsize=1)
         self.stop_event = threading.Event()
         self.open_sockets = []
         self.open_sockets_lock = threading.Lock()
@@ -34,11 +36,22 @@ class StreamReceiver:
         print("[*] Receiver 已安全关闭")
 
     def get_frame(self, timeout=0.1):
-        """获取最新一帧解码后的图像。如果队列为空，返回 None"""
+        """获取最新一帧解码后的图像。附带延迟探针输出"""
         try:
-            protocol, data = self.frame_queue.get(timeout=timeout)
+            # 1. 从队列拿到数据，并获取该帧到达 PC 的时间戳
+            protocol, data, t_arrival = self.frame_queue.get(timeout=timeout)
+            
+            t_decode_start = time.time() * 1000
             nparr = np.frombuffer(data, np.uint8)
             image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            t_decode_end = time.time() * 1000
+            
+            # 计算并打印 PC 端基础耗时
+            queue_wait_cost = t_decode_start - t_arrival
+            decode_cost = t_decode_end - t_decode_start
+            
+            print(f"👉 [PC底层] 队列积压等待: {queue_wait_cost:.1f}ms | JPEG解码: {decode_cost:.1f}ms")
+            
             return image
         except Empty:
             return None
@@ -58,15 +71,22 @@ class StreamReceiver:
             except OSError:
                 pass
 
-    def _enqueue_frame(self, protocol, data):
+    def _enqueue_frame(self, protocol, data, t_arrival):
+        """极致策略：永远只要最新的一帧，队列满时强行丢弃旧帧"""
         try:
-            self.frame_queue.put_nowait((protocol, data))
+            # 尝试直接放入
+            self.frame_queue.put_nowait((protocol, data, t_arrival))
         except Full:
             try:
+                # 如果队列满了，立刻把里面积压的旧帧强行拿出来扔掉
                 self.frame_queue.get_nowait()
             except Empty:
                 pass
-            self.frame_queue.put_nowait((protocol, data))
+            # 再次尝试把最新的一帧放进去
+            try:
+                self.frame_queue.put_nowait((protocol, data, t_arrival))
+            except Full:
+                pass
 
     def _receive_exact(self, connection, size):
         data = bytearray()
@@ -111,11 +131,13 @@ class StreamReceiver:
             self._register_socket(server_socket)
             while not self.stop_event.is_set():
                 try:
+                    # 这里就是刚才不小心被省略号替换掉的关键代码
                     connection, address = server_socket.accept()
                 except socket.timeout:
                     continue
                 except OSError:
                     break
+                
                 print(f"[*] TCP 客户端已连接: {address}")
                 with connection:
                     connection.settimeout(0.5)
@@ -124,9 +146,14 @@ class StreamReceiver:
                         if length_data is None: break
                         frame_length = struct.unpack("!I", length_data)[0]
                         if frame_length <= 0 or frame_length > self.max_frame_size: break
+                        
                         data = self._receive_exact(connection, frame_length)
                         if data is None: break
-                        self._enqueue_frame("TCP", data)
+                        
+                        # 【核心探针】：记录完整一帧数据到达 PC 内存的确切时间
+                        t_arrival = time.time() * 1000 
+                        self._enqueue_frame("TCP", data, t_arrival)
+                        
                 print("[*] TCP 客户端已断开，等待重连...")
         finally:
             server_socket.close()

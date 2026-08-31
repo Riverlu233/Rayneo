@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import time
 from stream_receiver import StreamReceiver
 from gomoku_agent import GomokuAgent
 from stream_sender import GomokuServerSender  # 引入刚才编写的 TCP 发送模块
@@ -27,6 +28,9 @@ def main():
             frame = receiver.get_frame(timeout=0.1)
             
             if frame is not None:
+                # This is deliberately measured after get_frame(): queue wait
+                # and JPEG decode are already reported by StreamReceiver.
+                t_pc_process_start = time.perf_counter()
                 # 修复 3:4 竖置传感器的方向问题（旋转后变为 16:9 横屏）
                 frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
                 
@@ -43,10 +47,16 @@ def main():
                 else:
                     cv2.putText(frame, "Board not found!", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
                 
-                print(f"🤓 眼镜原始画面尺寸 (高, 宽, 通道): {frame.shape}")
+                # Per-frame resolution logging is intentionally disabled; it
+                # adds terminal noise without helping the latency benchmark.
+                # print(f"🤓 眼镜原始画面尺寸 (高, 宽, 通道): {frame.shape}")
 
                 # 💡 核心修改 2：循环内部只负责用 imshow 刷新画面，绝不重复调用 namedWindow 和 resizeWindow！
                 cv2.imshow("AR Gomoku View", frame)
+                print(
+                    "  └─ [PC pipeline] "
+                    f"process_after_decode: {(time.perf_counter() - t_pc_process_start) * 1000:.1f}ms"
+                )
             
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break

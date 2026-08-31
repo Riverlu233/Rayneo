@@ -53,24 +53,26 @@ class GomokuOverlayView @JvmOverloads constructor(
 
         val n = board.size
         val size = min(width, height).toFloat()
-        val cell = size / n
+        // A board with n intersections has n - 1 gaps.
+        val spacing = size / (n - 1).toFloat()
+        val cell = spacing
         val offsetX = (width - size) / 2f
         val offsetY = (height - size) / 2f
 
         // 1. 画网格 (直接画在透明背景上)
         for (i in 0 until n) {
-            val y = offsetY + i * cell
+            val y = offsetY + i * spacing
             canvas.drawLine(offsetX, y, offsetX + size, y, gridPaint)
-            val x = offsetX + i * cell
+            val x = offsetX + i * spacing
             canvas.drawLine(x, offsetY, x, offsetY + size, gridPaint)
         }
 
         // 2. 画棋子
         for (r in 0 until n) {
             for (c in 0 until n) {
-                val cx = offsetX + c * cell + cell / 2f
-                val cy = offsetY + r * cell + cell / 2f
-                val radius = cell * 0.35f
+                val cx = offsetX + c * spacing
+                val cy = offsetY + r * spacing
+                val radius = spacing * 0.35f
 
                 when (board[r][c]) {
                     1 -> {
@@ -89,8 +91,8 @@ class GomokuOverlayView @JvmOverloads constructor(
         // 3. 画 AI 推荐落子点
         suggest?.let { (r, c) ->
             canvas.drawCircle(
-                offsetX + c * cell + cell / 2f,
-                offsetY + r * cell + cell / 2f,
+                offsetX + c * spacing,
+                offsetY + r * spacing,
                 cell * 0.45f, // 红圈比棋子稍微大一圈
                 suggestPaint
             )

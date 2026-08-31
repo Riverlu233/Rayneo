@@ -8,7 +8,13 @@
         android:minSdkVersion="31"
         android:targetSdkVersion="31" />
 
+    <!-- 保留必要的硬件与网络权限 -->
     <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
@@ -30,8 +36,9 @@
             android:name="com.rayneo.mercury.app"
             android:value="true" />
 
+        <!-- 将应用启动入口直接设为你的核心主流程 CameraActivity -->
         <activity
-            android:name="com.ffalcon.mercury.android.sdk.demo.DemoHomeActivity"
+            android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.camera.CameraActivity"
             android:exported="true"
             android:screenOrientation="landscape" >
             <intent-filter>
@@ -40,31 +47,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.DialogActivity"
-            android:screenOrientation="landscape" />
-        <activity
-            android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.recycle.FixedFocusPosRVActivity"
-            android:screenOrientation="landscape" />
-        <activity
-            android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.recycle.MovedFocusPosRVActivity"
-            android:screenOrientation="landscape" />
-        <activity
-            android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.FragmentDemoActivity"
-            android:screenOrientation="landscape" />
-        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.fusion.FusionVisionHomeActivity" />
-        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.fusion.FusionVisionActivity" />
-        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.fusion.MirrorContainerViewActivity" />
-        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.recycle.RecycleViewHomeActivity" />
-        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.api.APIActivity" />
-        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.camera.CameraActivity" />
-        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.tp.TPEventActivity" />
-        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.player.VideoPlayActivity" />
-        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.fusion.PAGActivity" />
-        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.api.APIHomeActivity" />
-        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.api.IMUActivity" />
-        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.camera.CameraHomeActivity" />
-        <activity android:name="com.ffalcon.mercury.android.sdk.demo.ui.activity.recycle.DynamicFocusTargetActivity" />
 
         <provider
             android:name="androidx.startup.InitializationProvider"

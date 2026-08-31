@@ -139,6 +139,6 @@ def test_single_image(weights_path, image_path):
 
 if __name__ == "__main__":
     WEIGHTS = r"D:\SummerIntern\Code\AIGlasses_SDK\Rayneo\trained_networks\GO_PIECEX1.pt" 
-    TEST_IMG = r"D:\SummerIntern\File\Gomoku_Test2.jpg"
+    TEST_IMG = r"D:\SummerIntern\File\Gomoku_Test.jpg"
     
     test_single_image(WEIGHTS, TEST_IMG)
