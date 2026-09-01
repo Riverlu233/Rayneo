@@ -36,6 +36,7 @@ def main():
                 
                 # --- CV 核心处理 ---
                 warped_board = agent._extract_board(frame)
+                agent.recognizer.draw_debug_overlay(frame)
                 
                 if warped_board is not None:
                     board_state = agent._recognize_stones(warped_board)

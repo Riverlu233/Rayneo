@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from board_recognition import GomokuBoardRecognizer
+from aruco_board_recognition import GomokuBoardRecognizer
 
 
 class GomokuAgent:
@@ -17,7 +17,7 @@ class GomokuAgent:
         处理传入的视频帧：识别棋盘、提取棋子、计算下一步，并绘制结果
         """
         # 1. 寻找棋盘并进行透视变换拉平
-        warped_board, transform_matrix = self.recognizer.extract_board(frame)
+        warped_board = self.recognizer.extract_board(frame)
         if warped_board is None:
             cv2.putText(frame, "Board not found!", (50, 50),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
@@ -31,7 +31,9 @@ class GomokuAgent:
 
         # 4. 在原图上绘制推荐落子点
         if next_move:
-            frame = self._draw_move_on_frame(frame, next_move, transform_matrix, warped_board.shape)
+            frame = self._draw_move_on_frame(
+                frame, next_move, self.recognizer.last_transform, warped_board.shape
+            )
 
         return frame
 
@@ -140,9 +142,11 @@ class GomokuAgent:
     def _draw_move_on_frame(self, frame, next_move, transform_matrix, warped_shape):
         row, col = next_move
         size = warped_shape[0]
-        cell_size = size / self.board_size
-        warped_x = col * cell_size + cell_size / 2
-        warped_y = row * cell_size + cell_size / 2
+        # A Gomoku stone lies on a grid intersection, including both
+        # endpoints, rather than at the centre of a grid cell.
+        cell_size = (size - 1) / (self.board_size - 1)
+        warped_x = col * cell_size
+        warped_y = row * cell_size
 
         M_inv = np.linalg.inv(transform_matrix)
         point = np.array([[[warped_x, warped_y]]], dtype=np.float32)
